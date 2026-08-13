@@ -203,7 +203,7 @@
 
   /* ---------- PRODUCT (dobalro) ---------- */
   .product{ background:var(--navy); color:var(--hanji); }
-  .product-grid{ display:grid; grid-template-columns:.95fr 1.05fr; gap:60px; align-items:center; }
+  .product-grid{ display:block; max-width:640px; margin:0 auto; }
   .product-copy img{ height:52px; width:auto; border-radius:9px; margin-bottom:22px; }
   .product-copy h2{ font-family:var(--serif); font-weight:500; font-size:clamp(24px,3.2vw,31px); line-height:1.5; margin-bottom:18px; color:var(--hanji); }
   .product-copy h2 em{ color:var(--gold-bright); font-style:normal; }
@@ -215,27 +215,6 @@
            display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .pm-body h4{ font-family:var(--serif); font-size:15px; margin-bottom:3px; color:#fff; }
   .pm-body p{ font-size:13px; color:#B7A98A; }
-
-  /* 근접 공개 데모 카드 */
-  .demo-card{ background:var(--navy-ink); border:1px solid rgba(184,134,11,.25); border-radius:22px; padding:26px; }
-  .demo-frame{ position:relative; aspect-ratio:1/1; border-radius:16px; overflow:hidden;
-    background:radial-gradient(circle at 50% 40%, #163043, var(--navy-ink)); border:1px solid rgba(184,134,11,.2); }
-  .demo-frame svg{ width:100%; height:100%; transition:filter .15s linear; }
-  .demo-overlay{ position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; padding:18px; pointer-events:none; }
-  .demo-label{ font-family:var(--serif); font-size:13px; letter-spacing:.04em; color:var(--gold-bright);
-    background:rgba(14,32,46,.6); padding:8px 16px; border-radius:999px; border:1px solid rgba(217,168,33,.3); }
-  .demo-controls{ margin-top:20px; }
-  .demo-row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
-  .demo-row span:first-child{ font-size:12px; letter-spacing:.08em; color:#9A8B6D; text-transform:uppercase; }
-  .demo-dist{ font-family:var(--serif); font-size:20px; color:var(--gold-bright); font-variant-numeric:tabular-nums; }
-  input[type="range"]{ -webkit-appearance:none; width:100%; height:3px; border-radius:2px;
-    background:linear-gradient(90deg,var(--gold-bright),rgba(184,134,11,.2)); }
-  input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%;
-    background:var(--gold-bright); border:3px solid var(--navy-ink); cursor:pointer; }
-  input[type="range"]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%;
-    background:var(--gold-bright); border:3px solid var(--navy-ink); cursor:pointer; }
-  .demo-hint{ font-size:11px; color:#7E7358; margin-top:11px; }
-  @media (max-width:860px){ .product-grid{ grid-template-columns:1fr; gap:44px; } }
 
   /* ---------- PROBLEM ---------- */
   .problem{ background:var(--paper-deep); }
@@ -500,25 +479,6 @@
           </li>
         </ol>
       </div>
-
-      <div class="demo-card reveal">
-        <div class="demo-frame">
-          <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" id="demoSvg" style="filter:blur(22px)">
-            <rect width="300" height="300" fill="#163043"/>
-            <circle cx="150" cy="118" r="44" fill="#D9A821" opacity="0.92"/>
-            <path d="M40 232 L112 128 L150 182 L192 108 L262 232 Z" fill="#0F4C81"/>
-            <path d="M112 232 L150 150 L192 232 Z" fill="#C8102E" opacity="0.9"/>
-            <rect x="130" y="202" width="40" height="30" fill="#F0E7CD"/>
-            <path d="M120 202 L150 176 L180 202 Z" fill="#0E202E"/>
-          </svg>
-          <div class="demo-overlay"><span class="demo-label" id="demoLabel">??? 목적지</span></div>
-        </div>
-        <div class="demo-controls">
-          <div class="demo-row"><span>남은 거리</span><span class="demo-dist" id="demoDist">3.0km</span></div>
-          <input type="range" min="5" max="3000" value="3000" id="demoRange" aria-label="목적지까지 남은 거리 시뮬레이션">
-          <p class="demo-hint">슬라이더를 당겨 목적지에 다가가 보세요.</p>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -572,36 +532,40 @@
         </dl>
       </div>
       <div class="reveal">
-        <span class="eyebrow" style="display:block; margin-bottom:10px;">오방색 · 五方色</span>
-        <p style="font-size:13.5px; color:var(--ink-soft); margin-bottom:22px; line-height:1.7;">전통 오방색을 dobalro의 목적지 분류에 대응시켰습니다. 정색 다섯에 간색 둘을 더해 여행의 갈래를 색으로 읽습니다.</p>
+        <span class="eyebrow" style="display:block; margin-bottom:10px;">분류체계 · Taxonomy</span>
+        <p style="font-size:13.5px; color:var(--ink-soft); margin-bottom:22px; line-height:1.7;">모든 목적지는 8종 카테고리 중 정확히 하나로 배정됩니다. 기준은 &quot;리빌 순간, 사용자가 이곳을 무엇으로 인식하는가&quot;입니다.</p>
         <div class="palette">
           <div class="sw">
-            <div class="sw-chip" style="background:#2E6BC8;"></div>
-            <div class="sw-info"><b>청 靑 · 볼거리</b><span>동방 — 자연·경관·전시</span></div>
+            <div class="sw-chip" style="background:#4C7A3F;"></div>
+            <div class="sw-info"><b>자연</b><span>본래 자연 그대로의 공간 — 산·강변·숲·해수욕장</span></div>
           </div>
           <div class="sw">
-            <div class="sw-chip" style="background:#D4302E;"></div>
-            <div class="sw-info"><b>적 赤 · 먹거리</b><span>남방 — 식당·카페·시장</span></div>
+            <div class="sw-chip" style="background:#C97B2D;"></div>
+            <div class="sw-info"><b>식음</b><span>먹고 마시는 것이 목적인 공간 — 카페·식당·시장 내 분식</span></div>
           </div>
           <div class="sw">
-            <div class="sw-chip" style="background:#E8B73A;"></div>
-            <div class="sw-info"><b>황 黃 · 메인 액센트</b><span>중앙 — 발견의 순간, 강조색</span></div>
+            <div class="sw-chip" style="background:#7B5EA7;"></div>
+            <div class="sw-info"><b>문화·예술</b><span>감상·전시·창작이 목적인 공간 — 미술관·갤러리·소극장</span></div>
           </div>
           <div class="sw">
-            <div class="sw-chip" style="background:#F5EFE3;"></div>
-            <div class="sw-info"><b>백 白 · 본문 텍스트</b><span>서방 — 한지빛, 읽는 바탕</span></div>
+            <div class="sw-chip" style="background:#8A5A3B;"></div>
+            <div class="sw-info"><b>역사·전통</b><span>역사성·전통성이 핵심 가치 — 한옥마을·고택·사찰</span></div>
           </div>
           <div class="sw">
-            <div class="sw-chip" style="background:#14100C;"></div>
-            <div class="sw-info"><b>흑 黑 · 먹빛 배경</b><span>북방 — 화면의 바탕</span></div>
+            <div class="sw-chip" style="background:#B84A4A;"></div>
+            <div class="sw-info"><b>시장·상권</b><span>사고파는 활기, 상업 공간 자체가 목적지 — 재래시장·골목상권</span></div>
           </div>
           <div class="sw">
-            <div class="sw-chip" style="background:#8B3A7E;"></div>
-            <div class="sw-info"><b>자 紫 · 놀거리</b><span>간색 — 문화·체험·즐길거리</span></div>
+            <div class="sw-chip" style="background:#3E8E8E;"></div>
+            <div class="sw-info"><b>생활·동네</b><span>동네 분위기 자체가 매력 — 골목·동네 명소·공공도서관</span></div>
           </div>
           <div class="sw">
-            <div class="sw-chip" style="background:#3C8E5A;"></div>
-            <div class="sw-info"><b>녹 綠 · 할거리</b><span>간색 — 활동·미션·해볼거리</span></div>
+            <div class="sw-chip" style="background:#5E6B77;"></div>
+            <div class="sw-info"><b>산업·구조물</b><span>기능 시설이 명소화된 공간 — 폐공장·등대·옛 역사</span></div>
+          </div>
+          <div class="sw">
+            <div class="sw-chip" style="background:#2F6DB5;"></div>
+            <div class="sw-info"><b>안내소</b><span>리빌 게임의 독립 목적지 — 관광안내소·여행자센터</span></div>
           </div>
         </div>
       </div>
@@ -728,28 +692,6 @@
     c.setAttribute('opacity', (Math.random()*0.5+0.15).toFixed(2));
     g.appendChild(c);
   }
-
-  // 근접 공개 데모
-  const range = document.getElementById('demoRange');
-  const svg = document.getElementById('demoSvg');
-  const dist = document.getElementById('demoDist');
-  const label = document.getElementById('demoLabel');
-  function fmtDist(m){ return m >= 1000 ? (m/1000).toFixed(1)+'km' : Math.round(m)+'m'; }
-  function updateDemo(){
-    const v = Number(range.value), max=3000, min=5;
-    const t = (v-min)/(max-min);
-    svg.style.filter = 'blur(' + (t*22).toFixed(1) + 'px)';
-    dist.textContent = fmtDist(v);
-    if(v<=5){
-      label.textContent='고요 다방 · 도착!';
-      label.style.color='#0E202E'; label.style.background='#D9A821'; label.style.borderColor='#D9A821';
-    } else {
-      label.textContent='??? 목적지';
-      label.style.color=''; label.style.background=''; label.style.borderColor='';
-    }
-  }
-  range.addEventListener('input', updateDemo);
-  updateDemo();
 
   // 스크롤 리빌
   const io = new IntersectionObserver((entries)=>{
