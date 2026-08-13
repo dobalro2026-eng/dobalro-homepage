@@ -181,24 +181,26 @@
     background:var(--hanji); border:1px solid var(--line); border-radius:18px; padding:32px;
     transition:transform .25s ease, box-shadow .25s ease;
   }
-  .value-card.lead{ grid-column:1 / -1; display:grid; grid-template-columns:auto 1fr; gap:26px; align-items:center; background:var(--navy); color:var(--hanji); border-color:transparent; }
-  .value-card.lead .ico{ stroke:var(--gold-bright); }
-  .value-card.lead .vc-ico{ background:rgba(240,231,205,.08); }
-  .value-card.lead h3{ color:#fff; }
-  .value-card.lead p{ color:#C7B99C; }
   .value-card:hover{ transform:translateY(-4px); box-shadow:0 20px 40px -22px rgba(26,58,82,.4); }
+
+  /* 파랑 / 한지 교차 배치 */
+  .values-grid .value-card:nth-child(odd){ background:var(--navy); border-color:transparent; }
+  .values-grid .value-card:nth-child(odd) .vc-ico{ background:rgba(240,231,205,.1); }
+  .values-grid .value-card:nth-child(odd) .ico{ stroke:var(--gold-bright); }
+  .values-grid .value-card:nth-child(odd) .ico circle[stroke="none"]{ fill:var(--gold-bright); }
+  .values-grid .value-card:nth-child(odd) .vc-en{ color:var(--gold-bright); }
+  .values-grid .value-card:nth-child(odd) h3{ color:#fff; }
+  .values-grid .value-card:nth-child(odd) p{ color:#C7B99C; }
+  .values-grid .value-card:nth-child(odd):hover{ box-shadow:0 20px 40px -22px rgba(10,24,36,.55); }
   .vc-ico{
     width:60px; height:60px; border-radius:15px; background:rgba(184,134,11,.1);
     display:flex; align-items:center; justify-content:center; margin-bottom:18px; flex-shrink:0;
   }
-  .value-card.lead .vc-ico{ margin-bottom:0; }
   .value-card h3{ font-family:var(--serif); font-size:19px; font-weight:700; margin-bottom:8px; }
   .value-card .vc-en{ font-family:var(--ital); font-style:italic; font-size:15px; color:var(--gold); margin-bottom:10px; }
-  .value-card.lead .vc-en{ color:var(--gold-bright); }
   .value-card p{ font-size:14px; color:var(--ink-soft); line-height:1.75; }
   @media (max-width:720px){
     .values-grid{ grid-template-columns:1fr; }
-    .value-card.lead{ grid-template-columns:1fr; text-align:left; }
   }
 
   /* ---------- PRODUCT (dobalro) ---------- */
@@ -218,13 +220,21 @@
 
   /* ---------- PROBLEM ---------- */
   .problem{ background:var(--paper-deep); }
-  .problem-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
-  .prob{ background:var(--paper); border-radius:14px; padding:26px 22px; border:1px solid var(--line); }
+  .problem-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:22px; }
+  .prob{ background:var(--paper); border-radius:18px; padding:32px; border:1px solid var(--line);
+         transition:transform .25s ease, box-shadow .25s ease; }
+  .prob:hover{ transform:translateY(-4px); box-shadow:0 20px 40px -22px rgba(26,58,82,.4); }
   .prob .ico{ width:28px; height:28px; margin-bottom:14px; }
-  .prob h3{ font-family:var(--serif); font-size:15px; font-weight:700; margin-bottom:8px; }
-  .prob p{ font-size:13px; color:var(--ink-soft); line-height:1.65; }
-  @media (max-width:860px){ .problem-grid{ grid-template-columns:1fr 1fr; } }
-  @media (max-width:480px){ .problem-grid{ grid-template-columns:1fr; } }
+  .prob h3{ font-family:var(--serif); font-size:17px; font-weight:700; margin-bottom:8px; }
+  .prob p{ font-size:14px; color:var(--ink-soft); line-height:1.7; }
+
+  /* 파랑 / 한지 교차 배치 */
+  .problem-grid .prob:nth-child(odd){ background:var(--navy); border-color:transparent; }
+  .problem-grid .prob:nth-child(odd) .ico{ stroke:var(--gold-bright); }
+  .problem-grid .prob:nth-child(odd) h3{ color:#fff; }
+  .problem-grid .prob:nth-child(odd) p{ color:#C7B99C; }
+  .problem-grid .prob:nth-child(odd):hover{ box-shadow:0 20px 40px -22px rgba(10,24,36,.55); }
+  @media (max-width:720px){ .problem-grid{ grid-template-columns:1fr; } }
 
   /* ---------- COMPANY / brand system ---------- */
   .company{ background:var(--paper); }
@@ -392,23 +402,21 @@
     </div>
     <div class="values-grid reveal">
       <!-- 우연성 — 대표 가치 (강조) -->
-      <div class="value-card lead">
+      <div class="value-card">
         <div class="vc-ico">
           <!-- 주사위 픽토그램 -->
-          <svg class="ico" style="width:34px;height:34px" viewBox="0 0 32 32">
+          <svg class="ico gold" style="width:30px;height:30px" viewBox="0 0 32 32">
             <rect x="6" y="6" width="20" height="20" rx="4"/>
-            <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>
-            <circle cx="20" cy="12" r="1.6" fill="currentColor" stroke="none"/>
-            <circle cx="16" cy="16" r="1.6" fill="currentColor" stroke="none"/>
-            <circle cx="12" cy="20" r="1.6" fill="currentColor" stroke="none"/>
-            <circle cx="20" cy="20" r="1.6" fill="currentColor" stroke="none"/>
+            <circle cx="12" cy="12" r="1.6" fill="var(--gold)" stroke="none"/>
+            <circle cx="20" cy="12" r="1.6" fill="var(--gold)" stroke="none"/>
+            <circle cx="16" cy="16" r="1.6" fill="var(--gold)" stroke="none"/>
+            <circle cx="12" cy="20" r="1.6" fill="var(--gold)" stroke="none"/>
+            <circle cx="20" cy="20" r="1.6" fill="var(--gold)" stroke="none"/>
           </svg>
         </div>
-        <div>
-          <div class="vc-en">Serendipity</div>
-          <h3>우연성</h3>
-          <p>계획되지 않은 만남의 즐거움. 목적지를 숨기고 나침반으로만 안내해, 여행에 다시 우연을 불어넣습니다. 정보 과포화 시대에 우리가 되살리려는 가장 중요한 감각입니다.</p>
-        </div>
+        <div class="vc-en">Serendipity</div>
+        <h3>우연성</h3>
+        <p>계획되지 않은 만남의 즐거움. 목적지를 숨기고 나침반으로만 안내해, 여행에 다시 우연을 불어넣습니다.</p>
       </div>
 
       <div class="value-card">
