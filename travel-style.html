@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>여행 성향 좌표 — dobalro</title>
+<meta name="description" content="여덟 개의 질문으로 현지 적응도와 개척·혁신성 좌표를 확인합니다. dobalro가 제안하는 여행 성향 자가 진단.">
+<meta property="og:title" content="당신은 여행지에서 어디쯤 서 있습니까">
+<meta property="og:description" content="여덟 개의 질문으로 현지 적응도와 개척·혁신성 좌표를 확인합니다. 1분이면 충분합니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dobalro.netlify.app/travel-style.html">
+<link rel="canonical" href="https://dobalro.netlify.app/travel-style.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;500;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,400;1,300;1,400&display=swap">
+
+<style>
+:root{
+  color-scheme:light;
+  /* 발길 솔리아 브랜드 팔레트 — 메인 사이트와 동일 */
+  --serif:'Noto Serif KR','Apple SD Gothic Neo',serif;
+  --sans:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  --ital:'Cormorant Garamond',Georgia,serif;
+
+  --ground:#F5EFE3;
+  --surface:#FFFCF5;
+  --surface-2:#EBE2CE;
+  --ink:#1A3A52;
+  --ink-2:#4B5E6C;
+  --muted:#8B98A2;
+  --line:rgba(26,58,82,.18);
+  --line-soft:rgba(26,58,82,.10);
+
+  --cheong:#1A3A52;                      /* 水 — X축 현지 적응도 */
+  --cheong-soft:rgba(26,58,82,.09);
+  --jeok:#C8102E;                        /* 火 — Y축 개척·혁신성 */
+  --jeok-soft:rgba(200,16,46,.08);
+  --hwang:#B8860B;                       /* 金 — 선구적 현지인 */
+  --hwang-soft:rgba(217,168,33,.22);
+  --grey-soft:rgba(139,152,162,.12);
+  --gold:#B8860B;
+  --gold-bright:#D9A821;
+
+  --cta-bg:#1A3A52;
+  --cta-fg:#F0E7CD;
+  --cta-rule:rgba(240,231,205,.18);
+  --shadow:0 1px 2px rgba(26,58,82,.05), 0 10px 28px -16px rgba(26,58,82,.28);
+  --r:12px;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--sans);font-size:15px;line-height:1.75;-webkit-font-smoothing:antialiased;
+}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:20px;padding-block:0 60px}
+h1,h2,h3{text-wrap:balance;margin:0}
+
+/* site nav */
+.sitenav{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  max-width:1080px;margin:0 auto;padding-inline:20px;
+  padding-block:calc(env(safe-area-inset-top, 0px) + 16px) 16px;
+  font-size:13.5px;
+}
+.sitenav a{text-decoration:none;color:var(--ink-2);transition:color .2s}
+.sitenav a:hover{color:var(--ink)}
+.sitenav .home{font-weight:500}
+.sitenav .mark{font-family:var(--ital);font-style:italic;font-size:17px;color:var(--ink);letter-spacing:.01em}
+
+/* masthead */
+.masthead{padding-block:34px 32px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line)}
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 14px}
+.eyebrow b{color:var(--ink);font-weight:700}
+h1{font-family:var(--serif);font-weight:500;
+   font-size:clamp(28px,5.6vw,42px);line-height:1.38;letter-spacing:-.01em;margin-bottom:16px}
+.lede{max-width:60ch;color:var(--ink-2);font-size:15.5px;margin:0}
+.axis-note{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:22px;font-size:13px;color:var(--muted)}
+.axis-note div{display:flex;gap:9px;align-items:baseline}
+.axis-note span{font-family:var(--serif);font-weight:700;font-size:11px;color:var(--gold);
+  background:var(--surface-2);border:1px solid var(--line-soft);border-radius:4px;padding:1px 6px;flex:none}
+
+/* layout: mobile = chart, questions, result, tune */
+.cols{display:flex;flex-direction:column;gap:14px;padding-top:28px}
+.panel-col{display:contents}
+.panel{order:1}
+main{order:2;margin-block:14px}
+.result{order:3}
+.tune{order:4}
+@media (min-width:920px){
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) 384px;gap:40px;align-items:start;padding-top:34px}
+  .panel-col{display:flex;flex-direction:column;gap:14px;order:2}
+  main{margin-block:0;order:1}
+}
+
+/* questions */
+.qlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px}
+.q{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:19px 19px 17px}
+.q-meta{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.q-num{font-family:var(--serif);font-size:12px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+.q-axis{font-size:10.5px;letter-spacing:.06em;font-weight:600;padding:2px 8px;border-radius:999px}
+.q-axis.x{color:var(--cheong);background:var(--cheong-soft)}
+.q-axis.y{color:var(--jeok);background:var(--jeok-soft)}
+.q h3{font-family:var(--serif);font-size:16.5px;font-weight:500;line-height:1.6;margin-bottom:14px}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opts input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.opts label{display:flex;gap:11px;align-items:flex-start;cursor:pointer;
+  border:1px solid var(--line);border-radius:8px;padding:9px 13px;
+  font-size:14.5px;line-height:1.55;color:var(--ink-2);
+  transition:border-color .14s, background .14s, color .14s}
+.opts label::before{content:"";flex:none;width:14px;height:14px;margin-top:6px;border-radius:50%;
+  border:1.5px solid var(--line);transition:border-color .14s, box-shadow .14s}
+.opts label:hover{border-color:var(--muted)}
+.opts input:checked + label{border-color:var(--cheong);background:var(--cheong-soft);color:var(--ink);font-weight:500}
+.opts input:checked + label::before{border-color:var(--cheong);box-shadow:inset 0 0 0 3.5px var(--cheong)}
+.opts input:focus-visible + label{outline:2px solid var(--cheong);outline-offset:2px}
+
+/* panel */
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);
+  box-shadow:var(--shadow);overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+.panel-head h2{font-family:var(--serif);font-size:13.5px;font-weight:500;letter-spacing:.02em}
+.chip{font-size:11px;font-weight:500;
+  padding:2px 9px;border-radius:999px;white-space:nowrap;background:var(--grey-soft);color:var(--muted)}
+.chip.live{background:var(--cheong-soft);color:var(--cheong)}
+.chip.done{background:var(--hwang-soft);color:var(--hwang)}
+
+.chart{display:block;width:100%;max-width:100%;height:auto;padding:10px 8px 0}
+.zone{transition:opacity .3s}
+.qlabel-k{font:500 11.5px var(--serif);transition:fill .3s,opacity .3s}
+.qlabel-e{font:italic 400 11px var(--ital);letter-spacing:.01em;transition:fill .3s,opacity .3s}
+.axtitle{font:500 10px var(--sans);letter-spacing:.06em;fill:var(--muted)}
+#marker,#guideX,#guideY{transition:transform .55s cubic-bezier(.22,1,.36,1),
+  x1 .55s cubic-bezier(.22,1,.36,1), x2 .55s cubic-bezier(.22,1,.36,1),
+  y1 .55s cubic-bezier(.22,1,.36,1), y2 .55s cubic-bezier(.22,1,.36,1)}
+@media (prefers-reduced-motion:reduce){
+  #marker,#guideX,#guideY,.zone,.bar i,.qlabel-k,.qlabel-e{transition:none}
+}
+
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line-soft);
+  border-top:1px solid var(--line-soft);margin:0}
+.readout div{background:var(--surface);padding:10px 16px 12px}
+.readout dt{font-size:10.5px;letter-spacing:.05em;color:var(--muted);font-weight:600;margin-bottom:1px}
+.readout dd{margin:0;font-family:var(--serif);font-size:24px;font-weight:500;
+  font-variant-numeric:tabular-nums;line-height:1.15}
+.readout dd b{font-size:11px;font-weight:500;color:var(--muted);margin-left:2px}
+#outX dd{color:var(--cheong)}
+#outY dd{color:var(--jeok)}
+
+.progress{padding:12px 16px 14px;border-top:1px solid var(--line-soft)}
+.bar{height:3px;background:var(--line-soft);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--cheong);border-radius:99px;transition:width .35s ease}
+.progress p{margin:8px 0 0;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* result */
+.result{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:20px}
+.result .tag{margin:0;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.result h3{font-family:var(--serif);font-weight:700;font-size:25px;line-height:1.35;margin:7px 0 4px}
+.result .en{margin:0;font-family:var(--ital);font-style:italic;font-size:16px;color:var(--gold)}
+.result .coord{margin:12px 0 0;font-size:12.5px;
+  color:var(--muted);font-variant-numeric:tabular-nums}
+.result .def{margin:14px 0 0;padding-left:13px;border-left:2px solid var(--accent);
+  font-size:15px;font-weight:500;color:var(--ink);line-height:1.6}
+.result .body{margin:14px 0 0;color:var(--ink-2);font-size:14.5px}
+.result h4{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  font-weight:600;margin:20px 0 9px}
+.steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.steps li{position:relative;padding-left:18px;font-size:14px;color:var(--ink-2);line-height:1.62}
+.steps li::before{content:"";position:absolute;left:1px;top:10px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.hook{margin-top:20px;padding:14px 15px;border-radius:8px;background:var(--surface-2);
+  border:1px solid var(--line-soft);font-size:14px;color:var(--ink-2);line-height:1.62}
+.hook b{display:block;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--ink);margin-bottom:3px}
+
+/* sliders */
+.tune{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:16px 18px 18px}
+.tune > p{margin:0 0 14px;font-size:12.5px;color:var(--muted)}
+.slider{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.slider:last-child{margin-bottom:0}
+.slider .lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2);font-weight:500}
+.slider .lab em{font-style:normal;font-family:var(--serif);font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:20px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:var(--line);border-radius:99px}
+input[type=range]::-moz-range-track{height:3px;background:var(--line);border-radius:99px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+  margin-top:-6px;background:var(--surface);border:2px solid var(--cheong)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--surface);border:2px solid var(--cheong)}
+#sy::-webkit-slider-thumb{border-color:var(--jeok)}
+#sy::-moz-range-thumb{border-color:var(--jeok)}
+input[type=range]:focus-visible{outline:2px solid var(--cheong);outline-offset:3px;border-radius:99px}
+
+/* cta */
+.cta{margin-top:38px;padding:30px 28px;border-radius:var(--r);background:var(--cta-bg);color:var(--cta-fg)}
+.cta .tag{margin:0;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.6;font-weight:600}
+.cta h2{font-family:var(--serif);font-weight:500;font-size:clamp(21px,4vw,27px);line-height:1.4;margin:10px 0 12px}
+.cta p.line{margin:0;max-width:56ch;font-size:14.5px;line-height:1.7;opacity:.84}
+.cta-actions{margin:22px 0 0}
+.cta-btn{
+  display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  font-weight:700;font-size:14.5px;padding:13px 26px;border-radius:12px;
+  background:linear-gradient(135deg,var(--gold-bright),var(--gold));color:#0E202E;
+  transition:transform .2s, box-shadow .2s;
+}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 16px 30px -14px rgba(217,168,33,.55)}
+.cta-btn:focus-visible{outline:2px solid var(--cta-fg);outline-offset:3px}
+.cta .slogan{margin:20px 0 0;padding-top:16px;border-top:1px solid var(--cta-rule);
+  font-family:var(--ital);font-style:italic;font-size:17px;letter-spacing:.01em;opacity:.8}
+.foot{margin-top:24px;font-size:12px;color:var(--muted);max-width:62ch}
+</style>
+</head>
+<body>
+<nav class="sitenav">
+  <a class="home" href="https://dobalro.netlify.app/">← 발길 솔리아</a>
+  <a class="mark" href="https://dobalro.netlify.app/#product">dobalro</a>
+</nav>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow"><b>두발로</b> · 여행 성향 좌표</p>
+    <h1>당신은 여행지에서<br>어디쯤 서 있습니까</h1>
+    <p class="lede">여덟 개의 질문에 답하면 두 축 위에 좌표가 찍힙니다. 어떻게 여행하는지를 정리해 보기 위한 자가 점검이고, 정답은 없습니다.</p>
+    <div class="axis-note">
+      <div><span>X</span>현지 적응도 — 그곳의 방식에 나를 맞추는 정도</div>
+      <div><span>Y</span>개척·혁신성 — 정해진 경로를 벗어나는 정도</div>
+    </div>
+  </header>
+
+  <div class="cols">
+
+    <main>
+      <ol class="qlist" id="qlist"></ol>
+    </main>
+
+    <div class="panel-col">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>여행 성향 좌표</h2>
+          <span class="chip" id="chip">예시 좌표</span>
+        </div>
+
+        <svg class="chart" viewBox="0 0 360 352" role="img" aria-labelledby="chartTitle">
+          <title id="chartTitle">현지 적응도와 개척·혁신성 두 축 위의 네 사분면 지도</title>
+
+          <rect class="zone" id="z2" x="36" y="30" width="144" height="144" fill="var(--jeok-soft)"></rect>
+          <rect class="zone" id="z1" x="180" y="30" width="144" height="144" fill="var(--hwang-soft)"></rect>
+          <rect class="zone" id="z3" x="36" y="174" width="144" height="144" fill="var(--grey-soft)"></rect>
+          <rect class="zone" id="z4" x="180" y="174" width="144" height="144" fill="var(--cheong-soft)"></rect>
+
+          <g stroke="var(--line)" stroke-width="1" stroke-dasharray="2 4">
+            <line x1="36" y1="102" x2="324" y2="102"></line>
+            <line x1="36" y1="246" x2="324" y2="246"></line>
+            <line x1="108" y1="30" x2="108" y2="318"></line>
+            <line x1="252" y1="30" x2="252" y2="318"></line>
+          </g>
+          <rect x="36" y="30" width="288" height="288" fill="none" stroke="var(--line)" stroke-width="1"></rect>
+          <g stroke="var(--ink-2)" stroke-width="1.4">
+            <line x1="36" y1="174" x2="324" y2="174"></line>
+            <line x1="180" y1="30" x2="180" y2="318"></line>
+          </g>
+
+          <text class="qlabel-k" id="l2k" x="108" y="56"  text-anchor="middle" fill="var(--muted)">돌출형 혁신가</text>
+          <text class="qlabel-e" id="l2e" x="108" y="69" text-anchor="middle" fill="var(--muted)">Rogue Innovator</text>
+          <text class="qlabel-k" id="l1k" x="252" y="56"  text-anchor="middle" fill="var(--muted)">선구적 현지인</text>
+          <text class="qlabel-e" id="l1e" x="252" y="69" text-anchor="middle" fill="var(--muted)">Pioneering Local</text>
+          <text class="qlabel-k" id="l3k" x="108" y="288" text-anchor="middle" fill="var(--muted)">관광객</text>
+          <text class="qlabel-e" id="l3e" x="108" y="301" text-anchor="middle" fill="var(--muted)">Outsider</text>
+          <text class="qlabel-k" id="l4k" x="252" y="288" text-anchor="middle" fill="var(--muted)">순응주의자</text>
+          <text class="qlabel-e" id="l4e" x="252" y="301" text-anchor="middle" fill="var(--muted)">Conformist</text>
+
+          <text class="axtitle" x="36" y="18" text-anchor="start">↑ 개척 · 혁신성</text>
+          <text class="axtitle" x="324" y="340" text-anchor="end">현지 적응도 →</text>
+
+          <line id="guideX" x1="36" y1="111" x2="145" y2="111" stroke="var(--cheong)" stroke-width="1" stroke-dasharray="3 3" opacity=".5"></line>
+          <line id="guideY" x1="145" y1="318" x2="145" y2="111" stroke="var(--jeok)" stroke-width="1" stroke-dasharray="3 3" opacity=".5"></line>
+
+          <g id="marker" style="transform:translate(145px,111px)">
+            <circle r="15" fill="var(--cheong)" opacity=".13"></circle>
+            <circle r="7.5" fill="var(--surface)" stroke="var(--cheong)" stroke-width="2"></circle>
+            <circle r="3" fill="var(--cheong)"></circle>
+          </g>
+        </svg>
+
+        <dl class="readout">
+          <div id="outX"><dt>현지 적응도</dt><dd><span id="vx">38</span><b>/100</b></dd></div>
+          <div id="outY"><dt>개척 · 혁신성</dt><dd><span id="vy">72</span><b>/100</b></dd></div>
+        </dl>
+
+        <div class="progress">
+          <div class="bar"><i id="barfill"></i></div>
+          <p id="ptext">8문항 중 0개 답변 · 아래는 예시 좌표입니다</p>
+        </div>
+      </section>
+
+      <section class="result" id="result"></section>
+
+      <section class="tune">
+        <p>질문 결과가 실제 감각과 다르면 직접 옮겨 보세요.</p>
+        <div class="slider">
+          <div class="lab"><label for="sx">현지 적응도</label><em id="lx">38</em></div>
+          <input type="range" id="sx" min="0" max="100" step="1" value="38">
+        </div>
+        <div class="slider">
+          <div class="lab"><label for="sy">개척 · 혁신성</label><em id="ly">72</em></div>
+          <input type="range" id="sy" min="0" max="100" step="1" value="72">
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="cta">
+    <p class="tag">두발로</p>
+    <h2 id="ctaTitle">목적지는 도착해야 열립니다</h2>
+    <p class="line" id="ctaBody">두발로는 오늘의 목적지 한 곳을 대신 골라 주고, 이름 대신 방향과 거리만 알려줍니다.</p>
+    <p class="cta-actions">
+      <a class="cta-btn" href="https://dobalro.netlify.app/#product">dobalro가 어떻게 작동하는지 보기 →</a>
+    </p>
+    <p class="slogan">Immerse like a local, lead like a pioneer.</p>
+  </section>
+
+  <p class="foot">여행 방식을 두 축으로 정리해 보기 위한 자가 점검 도구입니다. 성격 검사가 아니며, 좌표는 각 축에 배정된 네 문항의 평균값입니다.</p>
+</div>
+
+<script>
+const QUESTIONS = [
+  { axis:'x', q:'처음 간 동네에서 점심시간이 됐습니다.', o:[
+    ['미리 저장해 둔 맛집 리스트를 엽니다', 15],
+    ['지도 앱에서 별점 높은 곳을 찾습니다', 40],
+    ['사람이 들고 나는 집을 골라 따라 들어갑니다', 80],
+    ['시장 안, 간판도 흐릿한 국숫집에 앉습니다', 100]]},
+  { axis:'y', q:'여행 일정은 어떻게 짜는 편입니까.', o:[
+    ['시간 단위로 확정해 둡니다', 5],
+    ['주요 일정만 정하고 사이는 비워 둡니다', 45],
+    ['도착 지점만 정하고 나머지는 그날 정합니다', 80],
+    ['목적지도 정하지 않고 나섭니다', 100]]},
+  { axis:'x', q:'메뉴판에 모르는 음식 이름만 적혀 있습니다.', o:[
+    ['아는 메뉴가 있는 다른 가게로 옮깁니다', 10],
+    ['검색해서 무엇인지 확인하고 시킵니다', 40],
+    ['주인에게 뭐가 제일 잘 나가는지 묻습니다', 85],
+    ['옆 테이블이 먹고 있는 것을 가리킵니다', 100]]},
+  { axis:'y', q:'검색해도 정보가 거의 없는 장소를 발견했습니다.', o:[
+    ['정보가 없으면 가지 않습니다', 5],
+    ['근처에 볼 것이 더 있으면 갑니다', 35],
+    ['그것만으로도 가 볼 이유가 됩니다', 80],
+    ['정보가 없다는 점이 가장 큰 이유입니다', 100]]},
+  { axis:'x', q:'그 지역 사람이 먼저 말을 걸어왔습니다.', o:[
+    ['짧게 웃고 넘깁니다', 10],
+    ['필요한 것만 묻고 답합니다', 40],
+    ['어디서 왔는지 이야기하며 몇 마디 주고받습니다', 75],
+    ['앉아서 한참 듣습니다. 다음 목적지가 바뀌기도 합니다', 100]]},
+  { axis:'y', q:'골목 끝에서 이 길이 맞나 싶은 갈림길을 만났습니다.', o:[
+    ['지도를 켜고 원래 길로 돌아갑니다', 10],
+    ['지도로 확인한 뒤 짧으면 가 봅니다', 40],
+    ['일단 들어가 봅니다', 85],
+    ['이미 들어가 있습니다', 100]]},
+  { axis:'x', q:'여행에서 돌아온 뒤 가장 오래 남는 것은.', o:[
+    ['사진과 다녀온 장소 목록', 15],
+    ['먹어 본 음식들', 45],
+    ['그 동네의 공기와 속도, 말투', 85],
+    ['거기 사는 사람 한 명의 얼굴', 100]]},
+  { axis:'y', q:'친구에게 여행지를 추천한다면.', o:[
+    ['다들 좋다고 하는 곳', 10],
+    ['내가 가서 좋았던 유명한 곳', 35],
+    ['아직 사람이 적은 곳', 80],
+    ['내가 먼저 찾아낸 곳', 100]]}
+];
+
+const TYPES = {
+  pioneer:{
+    zone:'z1', name:'선구적 현지인', en:'Pioneering Local', accent:'var(--hwang)',
+    def:'남들이 아직 가지 않은 길로 들어가되, 그곳의 방식대로 걷습니다.',
+    body:'낯선 곳에서 먼저 관찰하고, 관찰한 대로 따라 합니다. 그래서 정보가 없는 장소가 당신에게는 막힌 길이 아니라 열린 길입니다. 여행에서 가장 많이 가져오는 사람이면서, 가장 적게 준비하는 사람이기도 합니다.',
+    steps:[
+      '지나온 길을 기록으로 남기세요. 정보가 없던 곳에 당신의 기록이 첫 정보가 됩니다.',
+      '한 도시를 여러 번 가 보세요. 개척은 넓이보다 깊이에서 갈립니다.',
+      '혼자 가던 길에 한 사람을 데려가 보세요. 설명하는 순간 보이는 것이 달라집니다.'],
+    hookT:'두발로가 하는 일이 당신이 이미 하는 일입니다',
+    hookB:'목적지를 미리 알려주지 않습니다. 방향과 거리만 주고, 앞에 서야 열립니다.'},
+  rogue:{
+    zone:'z2', name:'돌출형 혁신가', en:'Rogue Innovator', accent:'var(--jeok)',
+    def:'새로운 곳은 잘 찾아내지만, 그곳의 방식에는 잘 들어가지 않습니다.',
+    body:'검색되지 않는 장소를 찾아내는 감각이 있습니다. 다만 도착한 뒤에는 관찰자로 남는 편입니다. 사진은 남고 장면은 덜 남습니다. 찾아내는 힘은 이미 충분하니, 남은 것은 머무는 방식입니다.',
+    steps:[
+      '도착하고 30분은 아무것도 하지 말고 앉아 보세요. 그 동네의 속도가 먼저 보입니다.',
+      '하루 한 번은 현지 사람에게 묻기. "여기 사람들은 뭐 먹어요?" 한 문장이면 됩니다.',
+      '사진을 찍기 전에 한 바퀴 먼저 돌아 보세요. 두 번째로 보이는 것이 대개 진짜입니다.'],
+    hookT:'걷는 시간이 곧 적응하는 시간이 됩니다',
+    hookB:'두발로는 목적지 이름 대신 방향과 거리만 줍니다. 찾아가는 동안 그 동네가 먼저 보입니다.'},
+  conformist:{
+    zone:'z4', name:'순응주의자', en:'Conformist', accent:'var(--cheong)',
+    def:'그곳의 방식에는 잘 맞추지만, 남이 정해 준 경로 안에서 움직입니다.',
+    body:'현지에서 편안합니다. 메뉴를 묻고, 사람들과 말을 섞고, 그 리듬을 따라갑니다. 다만 그 장소는 대체로 다른 사람이 먼저 고른 곳입니다. 적응력이 이미 있으니 벗어나는 데 드는 위험이 남들보다 낮습니다.',
+    steps:[
+      '다음 여행에서 일정 한 칸을 비워 두세요. 그 칸은 그날 아침에 채웁니다.',
+      '검색 결과 두 번째 페이지에서 한 곳을 고르세요. 실패해도 회복이 빠른 편입니다.',
+      '늘 가던 동네에서 한 블록만 더 들어가 보세요. 개척은 거리와 무관합니다.'],
+    hookT:'고르는 일을 앱에 맡겨 보세요',
+    hookB:'두발로가 오늘의 목적지 한 곳을 대신 고릅니다. 고민 없이, 안 가 봤을 곳으로 갑니다.'},
+  outsider:{
+    zone:'z3', name:'관광객', en:'Outsider', accent:'var(--muted)',
+    def:'정해진 경로를 따라가고, 한 걸음 떨어진 자리에서 봅니다.',
+    body:'계획대로 움직이고 실패가 적습니다. 대신 여행지는 대체로 봤다로 남고 지냈다로는 남지 않습니다. 시작점으로는 나쁘지 않습니다. 두 축 모두 타고나는 것이 아니라 연습으로 올라갑니다.',
+    steps:[
+      '적응도부터 올리세요. 한 끼를 현지 사람이 가는 집에서 먹는 것으로 충분합니다.',
+      '낯선 나라보다 옆 동네에서 연습하세요. 실패 비용이 작아야 반복할 수 있습니다.',
+      '하루에 한 곳만 정하고 나머지는 비워 두세요. 처음에는 한 칸이면 충분합니다.'],
+    hookT:'하루 한 곳, 걸어서 닿는 거리부터',
+    hookB:'두발로는 가까운 곳 하나를 골라 줍니다. 작게 시작하는 편이 오래 갑니다.'}
+};
+
+const L = 36, B = 318, SPAN = 288;
+const px = v => L + (v / 100) * SPAN;
+const py = v => B - (v / 100) * SPAN;
+
+const answers = {};
+let manual = false, sample = true;
+let cur = { x: 38, y: 72 };
+
+const qlist    = document.getElementById('qlist');
+const sx       = document.getElementById('sx');
+const sy       = document.getElementById('sy');
+const marker   = document.getElementById('marker');
+const gX       = document.getElementById('guideX');
+const gY       = document.getElementById('guideY');
+const chip     = document.getElementById('chip');
+const ptext    = document.getElementById('ptext');
+const barfill  = document.getElementById('barfill');
+const resultEl = document.getElementById('result');
+const ctaTitle = document.getElementById('ctaTitle');
+const ctaBody  = document.getElementById('ctaBody');
+const ZONE_IDS = ['z1', 'z2', 'z3', 'z4'];
+const LBL = { z1:['l1k','l1e'], z2:['l2k','l2e'], z3:['l3k','l3e'], z4:['l4k','l4e'] };
+
+QUESTIONS.forEach((item, i) => {
+  const li = document.createElement('li');
+  li.className = 'q';
+  const n = String(i + 1).padStart(2, '0');
+  const axisLabel = item.axis === 'x' ? '현지 적응도' : '개척 · 혁신성';
+  li.innerHTML =
+    '<div class="q-meta"><span class="q-num">' + n + '</span>' +
+    '<span class="q-axis ' + item.axis + '">' + axisLabel + '</span></div>' +
+    '<h3>' + item.q + '</h3><div class="opts">' +
+    item.o.map((o, j) =>
+      '<input type="radio" id="q' + i + 'o' + j + '" name="q' + i + '" value="' + o[1] + '">' +
+      '<label for="q' + i + 'o' + j + '">' + o[0] + '</label>').join('') +
+    '</div>';
+  qlist.appendChild(li);
+});
+
+qlist.addEventListener('change', e => {
+  if (e.target.type !== 'radio') return;
+  answers[Number(e.target.name.slice(1))] = Number(e.target.value);
+  manual = false;
+  sample = false;
+  cur = score();
+  render();
+});
+
+[sx, sy].forEach(s => s.addEventListener('input', () => {
+  manual = true;
+  sample = false;
+  cur = { x: Number(sx.value), y: Number(sy.value) };
+  render();
+}));
+
+function score(){
+  const xs = [], ys = [];
+  QUESTIONS.forEach((item, i) => {
+    if (answers[i] === undefined) return;
+    (item.axis === 'x' ? xs : ys).push(answers[i]);
+  });
+  const avg = a => a.length ? Math.round(a.reduce((p, c) => p + c, 0) / a.length) : 50;
+  return { x: avg(xs), y: avg(ys) };
+}
+
+function typeOf(x, y){
+  if (y >= 50) return x >= 50 ? TYPES.pioneer : TYPES.rogue;
+  return x >= 50 ? TYPES.conformist : TYPES.outsider;
+}
+
+function render(){
+  const x = cur.x, y = cur.y;
+  const cx = px(x), cy = py(y);
+
+  marker.style.transform = 'translate(' + cx + 'px,' + cy + 'px)';
+  gX.setAttribute('x2', cx); gX.setAttribute('y1', cy); gX.setAttribute('y2', cy);
+  gY.setAttribute('x1', cx); gY.setAttribute('x2', cx); gY.setAttribute('y2', cy);
+
+  document.getElementById('vx').textContent = x;
+  document.getElementById('vy').textContent = y;
+  document.getElementById('lx').textContent = x;
+  document.getElementById('ly').textContent = y;
+  sx.value = x; sy.value = y;
+
+  const t = typeOf(x, y);
+  ZONE_IDS.forEach(id => {
+    const on = id === t.zone;
+    document.getElementById(id).style.opacity = on ? '1' : '.3';
+    LBL[id].forEach(lid => {
+      const el = document.getElementById(lid);
+      el.setAttribute('fill', on ? 'var(--ink)' : 'var(--muted)');
+      el.style.opacity = on ? '1' : '.55';
+    });
+  });
+
+  const n = Object.keys(answers).length;
+  barfill.style.width = (n / QUESTIONS.length * 100) + '%';
+
+  let heading;
+  if (sample){
+    chip.textContent = '예시 좌표'; chip.className = 'chip';
+    ptext.textContent = '8문항 중 0개 답변 · 아래는 예시 좌표입니다';
+    heading = '예시 유형';
+  } else if (manual){
+    chip.textContent = '직접 조정'; chip.className = 'chip live';
+    ptext.textContent = '슬라이더로 직접 옮긴 좌표입니다 · 답변 ' + n + '/8';
+    heading = '당신의 유형';
+  } else if (n === QUESTIONS.length){
+    chip.textContent = '완료'; chip.className = 'chip done';
+    ptext.textContent = '8문항 모두 답변 완료';
+    heading = '당신의 유형';
+  } else {
+    chip.textContent = n + '/8 진행'; chip.className = 'chip live';
+    ptext.textContent = '8문항 중 ' + n + '개 답변 · 남은 답변에 따라 좌표가 움직입니다';
+    heading = '현재 유형';
+  }
+
+  resultEl.style.setProperty('--accent', t.accent);
+  resultEl.innerHTML =
+    '<p class="tag">' + heading + '</p>' +
+    '<h3>' + t.name + '</h3>' +
+    '<p class="en">' + t.en + '</p>' +
+    '<p class="coord">현지 적응도 ' + x + ' · 개척·혁신성 ' + y + '</p>' +
+    '<p class="def">' + t.def + '</p>' +
+    '<p class="body">' + t.body + '</p>' +
+    '<h4>다음 한 걸음</h4>' +
+    '<ul class="steps">' + t.steps.map(s => '<li>' + s + '</li>').join('') + '</ul>' +
+    '<div class="hook"><b>' + t.hookT + '</b>' + t.hookB + '</div>';
+
+  ctaTitle.textContent = t.hookT;
+  ctaBody.textContent = t.hookB;
+}
+
+render();
+</script>
+</body>
+</html>
