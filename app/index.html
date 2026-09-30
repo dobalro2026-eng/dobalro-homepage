@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>두발로 dobalro</title>
+<meta name="description" content="목적지를 숨기고 방향과 거리만 안내하는 국내 소도시 발견 여행 앱">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1A3A52">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  :root{
+    --navy:#1A3A52; --navy2:#122A3D; --gold:#B8860B; --hanji:#D4C5B9;
+    --text:#EDEBE6; --text-dim:#9AA7B2; --bg:#0E1F2C;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR",sans-serif;}
+  #app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;
+    padding:24px 20px calc(24px + env(safe-area-inset-bottom));}
+  h1{font-size:22px;margin:0 0 4px;}
+  .sub{color:var(--text-dim);font-size:13px;margin-bottom:24px;}
+  button{
+    font-family:inherit;font-size:15px;border:none;border-radius:12px;padding:14px 18px;
+    cursor:pointer;width:100%;margin-bottom:10px;
+  }
+  .btn-primary{background:var(--gold);color:#1a1400;font-weight:700;}
+  .btn-secondary{background:rgba(255,255,255,0.08);color:var(--text);}
+  .btn-kakao{background:#FEE500;color:#1a1400;font-weight:700;}
+  .btn-google{background:#fff;color:#222;font-weight:700;}
+  .card{background:rgba(255,255,255,0.05);border-radius:16px;padding:18px;margin-bottom:14px;}
+  select,input{
+    width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);
+    background:rgba(255,255,255,0.04);color:var(--text);font-size:15px;margin-bottom:12px;
+  }
+  label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:6px;}
+  .center{text-align:center;}
+  .compass-arrow{font-size:96px;line-height:1;margin:24px 0;transition:transform .2s ease;}
+  .distance{font-size:34px;font-weight:800;margin:6px 0;}
+  .clue{font-style:italic;color:var(--hanji);font-size:16px;margin:16px 0;line-height:1.6;}
+  .stage-badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;
+    background:rgba(184,134,11,0.2);color:var(--gold);margin-bottom:12px;}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;
+    opacity:0;transition:opacity .3s;pointer-events:none;z-index:99;}
+  .toast.show{opacity:1;}
+  .row{display:flex;gap:10px;}
+  .row>*{flex:1;}
+  .footer-link{text-align:center;font-size:12px;color:var(--text-dim);margin-top:auto;padding-top:24px;}
+  .footer-link span{text-decoration:underline;cursor:pointer;}
+  .install-card{background:rgba(184,134,11,0.1);border:1px solid rgba(184,134,11,0.35);
+    border-radius:14px;padding:16px 18px;margin-bottom:14px;}
+  .install-card h4{margin:0 0 6px;font-size:14px;color:var(--gold);}
+  .install-card p{margin:0 0 10px;font-size:13px;color:var(--text-dim);line-height:1.6;}
+  .install-card .btn-primary{margin-bottom:0;}
+  .install-steps{margin:0;padding-left:18px;font-size:13px;color:var(--text);line-height:1.8;}
+  .install-steps b{color:var(--gold);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+
+<script src="config.js"></script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+// ---------------------------------------------------------------
+// 0. 초기화 — Supabase (설정 없으면 null = 체험 모드)
+// ---------------------------------------------------------------
+const cfg = window.DOBALRO_CONFIG || {};
+const supabase = (cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY)
+  ? createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY)
+  : null;
+
+const HISTORY_KEY = "dobalro_history_v1";
+const MAX_HISTORY = 100;
+
+// ---------------------------------------------------------------
+// 1. 거리·방위 계산 — Coordinate.swift 포팅
+// ---------------------------------------------------------------
+function distanceM(a, b) {
+  const R = 6371000;
+  const dLat = (b.lat - a.lat) * Math.PI / 180;
+  const dLng = (b.lng - a.lng) * Math.PI / 180;
+  const s = Math.sin(dLat / 2) ** 2 +
+    Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+}
+function bearingDeg(a, b) {
+  const l1 = a.lat * Math.PI / 180, l2 = b.lat * Math.PI / 180;
+  const dL = (b.lng - a.lng) * Math.PI / 180;
+  const y = Math.sin(dL) * Math.cos(l2);
+  const x = Math.cos(l1) * Math.sin(l2) - Math.sin(l1) * Math.cos(l2) * Math.cos(dL);
+  return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360;
+}
+function arrowFor(relBearing) {
+  const arrows = ["↑","↗","→","↘","↓","↙","←","↖"];
+  const idx = Math.round(relBearing / 45) % 8;
+  return arrows[(idx + 8) % 8];
+}
+
+// ---------------------------------------------------------------
+// 2. 이동수단 — Transport.swift 포팅
+// ---------------------------------------------------------------
+const TRANSPORT = {
+  walk:       { label: "도보",     kmh: 5   },
+  bike:       { label: "자전거",   kmh: 15  },
+  motorcycle: { label: "오토바이", kmh: 80  },
+  transit:    { label: "대중교통", kmh: 30  },
+  car:        { label: "자동차",   kmh: 60  },
+  train:      { label: "기차",     kmh: 150 },
+  ferry:      { label: "배",       kmh: 40  },
+  plane:      { label: "비행기",   kmh: 800 },
+};
+const TIME_RANGE = {
+  "30m": 30, "1h": 60, "2h": 120, half: 240, day: 480,
+};
+
+// ---------------------------------------------------------------
+// 3. 목적지 추첨 — DestinationPicker.swift 포팅
+// ---------------------------------------------------------------
+function pickDestination(pool, origin, transportKey, timeKey, budget, radiusMultiplier = 1.0) {
+  const transport = TRANSPORT[transportKey];
+  const minutes = TIME_RANGE[timeKey];
+  const capped = transportKey === "walk" ? Math.min(minutes, 60) : minutes;
+  const baseMaxKm = transport.kmh * capped / 60;
+  const maxKm = baseMaxKm * radiusMultiplier;
+  const minKm = Math.max(0.2, baseMaxKm * 0.05);
+
+  const candidates = [];
+  for (const place of pool) {
+    const km = distanceM(origin, place) / 1000;
+    if (km < minKm || km > maxKm) continue;
+    if (budget != null && place.cost > budget) continue;
+    candidates.push({ place, km });
+  }
+  if (candidates.length === 0) return null;
+  const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+  const travelTimeMin = Math.max(5, Math.round(chosen.km / transport.kmh * 60));
+  return { ...chosen, travelTimeMin };
+}
+
+// ---------------------------------------------------------------
+// 4. 상태
+// ---------------------------------------------------------------
+const state = {
+  screen: "intro",       // intro | setup | drawing | navigate | reveal | history
+  session: null,
+  pool: [],
+  origin: null,
+  heading: null,
+  watchId: null,
+  orientationBound: false,
+  transport: "walk",
+  timeRange: "1h",
+  budget: null,
+  result: null,
+  arrivalStage: 0,        // 0=이동중 1=50m 예고 2=20m 수동버튼 3=자동공개 가능
+  deferredInstallPrompt: null,
+};
+
+// ---------------------------------------------------------------
+// 3.5 설치(홈 화면 추가) 감지
+// ---------------------------------------------------------------
+const ua = navigator.userAgent || "";
+const isIOS = /iphone|ipad|ipod/i.test(ua) && !window.MSStream;
+const isAndroid = /android/i.test(ua);
+const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+  || window.navigator.standalone === true;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  state.deferredInstallPrompt = e;
+  if (state.screen === "intro") render();
+});
+window.addEventListener("appinstalled", () => {
+  state.deferredInstallPrompt = null;
+  toast("설치 완료 — 홈 화면에서 두발로를 열어보세요");
+  if (state.screen === "intro") render();
+});
+
+function renderInstallCard() {
+  if (isStandalone) return "";
+  if (isAndroid || state.deferredInstallPrompt) {
+    return `
+      <div class="install-card" id="install-android">
+        <h4>📲 Android에 설치</h4>
+        <p>홈 화면에 앱처럼 설치해 바로 실행할 수 있습니다.</p>
+        <button class="btn-primary" id="btn-install-android">홈 화면에 설치</button>
+      </div>`;
+  }
+  if (isIOS) {
+    return `
+      <div class="install-card" id="install-ios">
+        <h4>📲 iOS에 설치</h4>
+        <p>Safari의 <b>공유</b> 버튼(<b>⬆︎</b>)을 누른 뒤 아래 순서대로 진행하세요.</p>
+        <ol class="install-steps">
+          <li>하단 공유 <b>⬆︎</b> 아이콘 탭</li>
+          <li><b>"홈 화면에 추가"</b> 선택</li>
+          <li>우측 상단 <b>추가</b> 탭</li>
+        </ol>
+      </div>`;
+  }
+  return "";
+}
+
+function bindInstallCard() {
+  const btnA = document.getElementById("btn-install-android");
+  if (btnA) {
+    btnA.onclick = async () => {
+      if (!state.deferredInstallPrompt) { toast("브라우저 메뉴에서 '앱 설치'를 선택해 주세요"); return; }
+      state.deferredInstallPrompt.prompt();
+      const { outcome } = await state.deferredInstallPrompt.userChoice;
+      state.deferredInstallPrompt = null;
+      if (outcome === "accepted") toast("설치를 진행합니다");
+      render();
+    };
+  }
+}
+
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+// ---------------------------------------------------------------
+// 5. 목적지 풀 로드 — Supabase 우선, 실패 시 로컬 places.json
+// ---------------------------------------------------------------
+async function loadPool() {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("destinations")
+      .select("id,category,name,lat,lng,cost,clue,mood,hint,is_market,market_days");
+    if (!error && data && data.length) {
+      return data.map(d => ({ ...d, isMarket: d.is_market }));
+    }
+  }
+  const res = await fetch("./places.json");
+  return res.json();
+}
+
+// ---------------------------------------------------------------
+// 6. 인증
+// ---------------------------------------------------------------
+async function loginWith(provider) {
+  if (!supabase) { toast("Supabase 미설정 — 체험 모드로 계속 진행합니다"); return; }
+  await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.href } });
+}
+async function logout() {
+  if (supabase) await supabase.auth.signOut();
+  state.session = null;
+  render();
+}
+
+// ---------------------------------------------------------------
+// 7. 방문 기록 저장 — Supabase 있으면 서버, 없으면 localStorage
+// ---------------------------------------------------------------
+async function saveVisit(entry) {
+  if (supabase && state.session) {
+    await supabase.from("visit_history").insert({
+      user_id: state.session.user.id,
+      destination_id: entry.destination_id ?? null,
+      place_name: entry.place_name,
+      category: entry.category,
+      distance_km: entry.distance_km,
+      transport: entry.transport,
+      estimated_cost: entry.estimated_cost,
+      is_market: entry.is_market,
+      cryptic_clue: entry.cryptic_clue,
+      origin_lat: entry.origin_lat,
+      origin_lng: entry.origin_lng,
+    });
+    return;
+  }
+  const raw = localStorage.getItem(HISTORY_KEY);
+  const list = raw ? JSON.parse(raw) : [];
+  list.unshift({ ...entry, visited_at: new Date().toISOString() });
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, MAX_HISTORY)));
+}
+
+// ---------------------------------------------------------------
+// 8. GPS 추적 + 나침반
+// ---------------------------------------------------------------
+function startNavigation() {
+  if (!("geolocation" in navigator)) { toast("이 브라우저는 위치 정보를 지원하지 않습니다"); return; }
+  state.watchId = navigator.geolocation.watchPosition(onPosition, onPositionError, {
+    enableHighAccuracy: true, maximumAge: 2000, timeout: 10000,
+  });
+
+  // iOS 13+ 는 명시적 권한 요청 필요
+  if (typeof DeviceOrientationEvent !== "undefined" &&
+      typeof DeviceOrientationEvent.requestPermission === "function") {
+    DeviceOrientationEvent.requestPermission().then(res => {
+      if (res === "granted") bindOrientation();
+    }).catch(() => {});
+  } else {
+    bindOrientation();
+  }
+}
+function bindOrientation() {
+  if (state.orientationBound) return;
+  state.orientationBound = true;
+  window.addEventListener("deviceorientationabsolute", onOrientation, true);
+  window.addEventListener("deviceorientation", onOrientation, true);
+}
+function onOrientation(e) {
+  const h = e.webkitCompassHeading != null ? e.webkitCompassHeading : (360 - e.alpha);
+  if (h != null && !isNaN(h)) { state.heading = h; if (state.screen === "navigate") renderNavigate(); }
+}
+function onPositionError() { toast("위치 정보를 가져올 수 없습니다 — 권한을 확인해주세요"); }
+function onPosition(pos) {
+  state.origin = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
+  if (state.screen === "navigate" && state.result) {
+    const distM = distanceM(state.origin, state.result.place);
+    if (distM <= 5 && state.origin.accuracy <= 15) state.arrivalStage = 3;
+    else if (distM <= 20) state.arrivalStage = Math.max(state.arrivalStage, 2);
+    else if (distM <= 50) state.arrivalStage = Math.max(state.arrivalStage, 1);
+    renderNavigate();
+  }
+}
+function stopNavigation() {
+  if (state.watchId != null) navigator.geolocation.clearWatch(state.watchId);
+  state.watchId = null;
+}
+
+// ---------------------------------------------------------------
+// 9. 화면 렌더링
+// ---------------------------------------------------------------
+const app = document.getElementById("app");
+
+function render() {
+  if (state.screen === "intro") return renderIntro();
+  if (state.screen === "setup") return renderSetup();
+  if (state.screen === "navigate") return renderNavigate();
+  if (state.screen === "reveal") return renderReveal();
+  if (state.screen === "history") return renderHistory();
+}
+
+function renderIntro() {
+  app.innerHTML = `
+    <h1>두발로</h1>
+    <p class="sub">방향과 거리만 안다. 목적지는, 도착해야 안다.</p>
+    ${renderInstallCard()}
+    <div class="card">
+      ${state.session
+        ? `<p>${state.session.user.email ?? "로그인됨"}</p>
+           <button class="btn-secondary" id="logout">로그아웃</button>`
+        : `<label>로그인 (선택) — 기록을 기기 간 동기화합니다</label>
+           <button class="btn-kakao" id="login-kakao">카카오로 시작하기</button>
+           <button class="btn-google" id="login-google">Google로 시작하기</button>`
+      }
+    </div>
+    <button class="btn-primary" id="start">여정 시작하기</button>
+    <button class="btn-secondary" id="go-history">나의 발걸음</button>
+    <div class="footer-link"><span id="skip">${state.session ? "" : "로그인 없이 체험만 하기"}</span></div>
+  `;
+  document.getElementById("start").onclick = () => { state.screen = "setup"; render(); };
+  document.getElementById("go-history").onclick = () => { state.screen = "history"; render(); };
+  const loginK = document.getElementById("login-kakao");
+  const loginG = document.getElementById("login-google");
+  if (loginK) loginK.onclick = () => loginWith("kakao");
+  if (loginG) loginG.onclick = () => loginWith("google");
+  const lo = document.getElementById("logout");
+  if (lo) lo.onclick = logout;
+  bindInstallCard();
+}
+
+function renderSetup() {
+  app.innerHTML = `
+    <h1>오늘의 조건</h1>
+    <p class="sub">이동수단과 시간을 고르면 그 범위 안에서 무작위로 한 곳이 정해집니다</p>
+    <div class="card">
+      <label>이동수단</label>
+      <select id="transport">
+        ${Object.entries(TRANSPORT).map(([k,v]) =>
+          `<option value="${k}" ${k===state.transport?"selected":""}>${v.label}</option>`).join("")}
+      </select>
+      <label>여유 시간</label>
+      <select id="timeRange">
+        ${Object.keys(TIME_RANGE).map(k =>
+          `<option value="${k}" ${k===state.timeRange?"selected":""}>${k}</option>`).join("")}
+      </select>
+      <label>예산 상한 (원, 비우면 무제한)</label>
+      <input type="number" id="budget" placeholder="예: 20000">
+    </div>
+    <button class="btn-primary" id="draw">운명에 맡기기</button>
+    <button class="btn-secondary" id="back">뒤로</button>
+  `;
+  document.getElementById("back").onclick = () => { state.screen = "intro"; render(); };
+  document.getElementById("draw").onclick = async () => {
+    state.transport = document.getElementById("transport").value;
+    state.timeRange = document.getElementById("timeRange").value;
+    const b = document.getElementById("budget").value;
+    state.budget = b ? parseInt(b, 10) : null;
+    await doDraw();
+  };
+}
+
+async function doDraw() {
+  app.innerHTML = `<h1>추첨 중...</h1><p class="sub">현재 위치를 확인하고 있습니다</p>`;
+  if (!state.pool.length) state.pool = await loadPool();
+
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    state.origin = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
+    let result = pickDestination(state.pool, state.origin, state.transport, state.timeRange, state.budget, 1.0);
+    if (!result) result = pickDestination(state.pool, state.origin, state.transport, state.timeRange, state.budget, 2.0);
+    if (!result) { toast("조건에 맞는 목적지를 찾지 못했습니다 — 시간을 늘려보세요"); state.screen = "setup"; render(); return; }
+    state.result = result;
+    state.arrivalStage = 0;
+    state.screen = "navigate";
+    startNavigation();
+    renderNavigate();
+  }, () => {
+    toast("위치 권한이 필요합니다");
+    state.screen = "setup"; render();
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+function renderNavigate() {
+  const { place, km } = state.result;
+  const distM = state.origin ? distanceM(state.origin, place) : km * 1000;
+  const bearing = state.origin ? bearingDeg(state.origin, place) : 0;
+  const rel = state.heading != null ? (bearing - state.heading + 360) % 360 : bearing;
+  const arrow = arrowFor(rel);
+
+  const stageLabel = ["이동 중", "거의 다 왔어요 (50m 이내)", "수동 도착 확인이 가능합니다 (20m 이내)", "도착! 목적지를 공개할 수 있습니다"][state.arrivalStage];
+
+  app.innerHTML = `
+    <div class="stage-badge">${state.result.place.category}</div>
+    <div class="center">
+      <div class="compass-arrow">${arrow}</div>
+      <div class="distance">${distM >= 1000 ? (distM/1000).toFixed(1) + "km" : Math.round(distM) + "m"}</div>
+      <p class="sub">${stageLabel}</p>
+      <p class="clue">"${state.result.place.clue}"</p>
+    </div>
+    <div class="card">
+      <p style="font-size:13px;color:var(--text-dim)">예상 소요 ${state.result.travelTimeMin}분 · 예상 비용 ${state.result.place.cost.toLocaleString()}원</p>
+    </div>
+    ${state.arrivalStage >= 2
+      ? `<button class="btn-primary" id="arrive">도착했어요</button>`
+      : `<button class="btn-secondary" disabled>가까워지면 도착 버튼이 나타납니다</button>`}
+    <button class="btn-secondary" id="give-up">그만두기</button>
+  `;
+  const arriveBtn = document.getElementById("arrive");
+  if (arriveBtn) arriveBtn.onclick = onArrive;
+  document.getElementById("give-up").onclick = () => {
+    stopNavigation(); state.screen = "intro"; render();
+  };
+}
+
+async function onArrive() {
+  stopNavigation();
+  const { place, km } = state.result;
+  await saveVisit({
+    destination_id: place.id ?? null,
+    place_name: place.name,
+    category: place.category,
+    distance_km: km,
+    transport: state.transport,
+    estimated_cost: place.cost,
+    is_market: !!place.isMarket,
+    cryptic_clue: place.clue,
+    origin_lat: state.origin?.lat,
+    origin_lng: state.origin?.lng,
+  });
+  state.screen = "reveal";
+  render();
+}
+
+function renderReveal() {
+  const { place } = state.result;
+  app.innerHTML = `
+    <div class="center">
+      <div class="stage-badge">도착</div>
+      <h1>${place.name}</h1>
+      <p class="clue">${place.hint}</p>
+      <p class="sub">${place.mood}</p>
+    </div>
+    <button class="btn-primary" id="done">처음으로</button>
+  `;
+  document.getElementById("done").onclick = () => { state.result = null; state.screen = "intro"; render(); };
+}
+
+async function renderHistory() {
+  app.innerHTML = `<h1>나의 발걸음</h1><p class="sub">불러오는 중...</p>`;
+  let entries = [];
+  if (supabase && state.session) {
+    const { data } = await supabase.from("visit_history").select("*")
+      .eq("user_id", state.session.user.id).order("visited_at", { ascending: false }).limit(50);
+    entries = data || [];
+  } else {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    entries = raw ? JSON.parse(raw) : [];
+  }
+  app.innerHTML = `
+    <h1>나의 발걸음</h1>
+    <p class="sub">${entries.length}곳 방문 ${state.session ? "· 클라우드 동기화됨" : "· 이 기기에만 저장됨(로그인하면 동기화)"}</p>
+    ${entries.map(e => `
+      <div class="card">
+        <strong>${e.place_name}</strong>
+        <p style="font-size:12px;color:var(--text-dim)">${e.category} · ${(e.visited_at||"").slice(0,10)}</p>
+      </div>`).join("") || `<p class="sub">아직 기록이 없습니다</p>`}
+    <button class="btn-secondary" id="back">뒤로</button>
+  `;
+  document.getElementById("back").onclick = () => { state.screen = "intro"; render(); };
+}
+
+// ---------------------------------------------------------------
+// 10. 시작
+// ---------------------------------------------------------------
+async function boot() {
+  if (supabase) {
+    const { data } = await supabase.auth.getSession();
+    state.session = data.session;
+    supabase.auth.onAuthStateChange((_event, session) => {
+      state.session = session;
+      if (state.screen === "intro") render();
+    });
+  }
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  }
+  render();
+}
+boot();
+</script>
+</body>
+</html>
