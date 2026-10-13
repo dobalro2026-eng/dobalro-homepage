@@ -346,6 +346,12 @@ select.sel{font-size:15px;padding:7px 10px;border-radius:8px;background:rgba(var
 .lbtn{display:block;width:100%;padding:12px;border-radius:8px;font-size:15px;font-weight:600;margin-bottom:8px;}
 .lbtn.kakao{background:#FEE500;color:#1a1400;}
 .lbtn.google{background:#fff;color:#222;}
+.linp{display:block;width:100%;box-sizing:border-box;padding:12px;margin-bottom:8px;border-radius:8px;border:1px solid rgba(var(--gold-rgb),.3);background:rgba(var(--glass),.06);color:var(--tp);font-size:16px;outline:none;}
+.linp:focus{border-color:var(--gold);}
+.lrow{display:flex;gap:8px;}.lrow .lbtn{margin-bottom:8px;}
+.lbtn.pri{background:var(--gold);color:#14100C;}
+.lbtn.sec{background:rgba(var(--glass),.08);color:var(--tp);border:1px solid rgba(var(--gold-rgb),.3);}
+.lmsg{min-height:16px;font-size:12px;color:#e0705a;margin-bottom:8px;}.lmsg.ok{color:var(--td);}
 .lbtn.out{background:rgba(var(--glass),.08);color:var(--tm);margin-bottom:0;}
 .resume{max-width:400px;margin:14px auto 0;padding:14px 18px;border-radius:14px;background:rgba(var(--gold-rgb),.1);border:1px solid var(--gold);}
 .resume p{margin:0 0 10px;font-size:13px;color:var(--tp);line-height:1.6;}
@@ -384,12 +390,27 @@ const I18N = {"app_name":{"ko":"두발로","en":"Dobalro","ja":"ドバルロ","z
 const EXTRA = {
   err_geo_unsupported: { ko: "이 브라우저는 위치 정보를 지원하지 않아요", en: "This browser doesn't support geolocation" },
   err_geo_denied: { ko: "위치 접근이 거부되었어요. 설정에서 위치 권한을 허용해 주세요.", en: "Location access was denied. Please allow it in settings." },
+  err_geo_timeout: { ko: "현재 위치를 찾는 데 시간이 너무 오래 걸려요. 실내라면 창가나 야외에서 다시 시도해 주세요.", en: "Finding your location timed out. Try again near a window or outdoors." },
+  err_geo_unavail: { ko: "현재 위치를 확인할 수 없어요. 위치 서비스·Wi-Fi·모바일 데이터를 확인하고 다시 시도해 주세요.", en: "Couldn't determine your location. Check Location Services and your connection, then retry." },
   err_no_pool: { ko: "장소 데이터를 불러오지 못했어요. 네트워크를 확인해 주세요.", en: "Couldn't load place data. Please check your connection." },
   prox_alert: { ko: "근접 알림 (소리·진동)", en: "Proximity alert (sound / vibration)" },
   prox_alert_sub: { ko: "목적지에 가까워지면 알려드려요 (iOS는 소리·화면 반짝임)", en: "Alerts when you get close (iOS: sound & flash)" },
   login_optional: { ko: "로그인 (선택) — 기록을 기기 간 동기화해요", en: "Sign in (optional) — sync your records across devices" },
   login_kakao_web: { ko: "카카오로 시작하기", en: "Continue with Kakao" },
   login_google_web: { ko: "Google로 시작하기", en: "Continue with Google" },
+  login_test_t: { ko: "테스트 로그인 — 기록을 기기 간 동기화해요", en: "Test sign-in — sync your records across devices" },
+  login_email: { ko: "이메일", en: "Email" },
+  login_pw: { ko: "비밀번호 (6자 이상)", en: "Password (6+ characters)" },
+  login_signin: { ko: "로그인", en: "Sign in" },
+  login_signup: { ko: "회원가입", en: "Sign up" },
+  login_need: { ko: "이메일과 비밀번호(6자 이상)를 입력해 주세요", en: "Enter your email and a password (6+ characters)" },
+  login_wait: { ko: "처리 중…", en: "Working…" },
+  login_bad: { ko: "이메일 또는 비밀번호가 맞지 않아요", en: "Wrong email or password" },
+  login_unconfirmed: { ko: "이메일 인증이 필요해요. 받은 편지함을 확인해 주세요", en: "Please confirm your email first (check your inbox)" },
+  login_confirm_sent: { ko: "인증 메일을 보냈어요. 메일의 링크를 누른 뒤 로그인해 주세요", en: "Confirmation email sent. Click the link, then sign in" },
+  login_exists: { ko: "이미 가입된 이메일이에요. 로그인해 주세요", en: "This email is already registered. Please sign in" },
+  login_ok: { ko: "로그인되었어요", en: "Signed in" },
+  login_fail: { ko: "로그인에 실패했어요. 잠시 후 다시 시도해 주세요", en: "Sign-in failed. Please try again" },
   logout: { ko: "로그아웃", en: "Sign out" },
   logged_in: { ko: "로그인됨", en: "Signed in" },
   resume_trip: { ko: "진행 중이던 여정이 있어요", en: "You have a trip in progress" },
@@ -787,11 +808,15 @@ function readTrip() {
 // 10. 위치 · 나침반 · 화면 켜짐 · 알림음
 // ---------------------------------------------------------------
 function getOnce() {
-  return new Promise((res, rej) => {
-    if (!("geolocation" in navigator)) return rej(new Error("unsupported"));
+  const once = (opts) => new Promise((res, rej) => {
     navigator.geolocation.getCurrentPosition(
-      (p) => res({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }),
-      (e) => rej(e), { enableHighAccuracy: true, timeout: 12000, maximumAge: 5000 });
+      (p) => res({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }), rej, opts);
+  });
+  if (!("geolocation" in navigator)) return Promise.reject(new Error("unsupported"));
+  // 1차: 고정밀(GPS) → 시간 초과·측위 불가면 2차: 저정밀(Wi-Fi/기지국)로 재시도. 권한 거부(code 1)만 바로 실패.
+  return once({ enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }).catch((e) => {
+    if (e && e.code === 1) throw e;
+    return once({ enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 });
   });
 }
 async function reverseGeocode(c) {
@@ -941,15 +966,22 @@ function installCard() {
   }
   return "";
 }
+const OAUTH_ENABLED = false;
 function loginCard() {
   if (!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY)) return "";
   if (S.session) {
     return `<div class="login-card"><div class="em">${t("logged_in")} · ${esc(S.session.user.email || "")}</div>
       <button class="lbtn out" data-act="logout">${t("logout")}</button></div>`;
   }
-  return `<div class="login-card"><div class="k">${t("login_optional")}</div>
-    <button class="lbtn kakao" data-act="login" data-p="kakao">${t("login_kakao_web")}</button>
-    <button class="lbtn google" data-act="login" data-p="google">${t("login_google_web")}</button></div>`;
+  // 카카오·Google 로그인은 보류(OAUTH_ENABLED=false) — 테스트 기간에는 Supabase 이메일 로그인
+  const oauth = OAUTH_ENABLED ? `<button class="lbtn kakao" data-act="login" data-p="kakao">${t("login_kakao_web")}</button>
+    <button class="lbtn google" data-act="login" data-p="google">${t("login_google_web")}</button>` : "";
+  return `<div class="login-card"><div class="k">${t("login_test_t")}</div>
+    <input class="linp" id="lgEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${t("login_email")}">
+    <input class="linp" id="lgPw" type="password" autocomplete="current-password" placeholder="${t("login_pw")}">
+    <div class="lrow"><button class="lbtn pri" data-act="pw-signin">${t("login_signin")}</button>
+    <button class="lbtn sec" data-act="pw-signup">${t("login_signup")}</button></div>
+    <div class="lmsg" id="lgMsg"></div>${oauth}</div>`;
 }
 function viewIntro() {
   const n = HIST.length, trip = S.resumeDismissed ? null : readTrip();
@@ -1025,6 +1057,14 @@ function viewSetup() {
 function refreshGps() { const el = $("gps-wrap"); if (el) el.innerHTML = gpsHTML(); }
 function refreshToday() { const el = $("today"); if (el) el.innerHTML = todayHTML(); }
 
+function geoErrMsg(e) {
+  if (e && e.message === "unsupported") return t("err_geo_unsupported");
+  const c = e && e.code;
+  if (c === 1) return t("err_geo_denied");
+  if (c === 3) return t("err_geo_timeout");
+  if (c === 2) return t("err_geo_unavail");
+  return t("err_geo_unavail");
+}
 async function handleGps() {
   S.gpsLoading = true; S.setupError = ""; refreshGps();
   try {
@@ -1035,7 +1075,7 @@ async function handleGps() {
     const inp = $("loc"); if (inp) inp.value = S.locationText;
     fetchWeather(c).then((w) => { S.weather = w; if (S.screen === "setup") refreshToday(); });
   } catch (e) {
-    S.setupError = e && e.message === "unsupported" ? t("err_geo_unsupported") : t("err_geo_denied");
+    S.setupError = geoErrMsg(e);
   }
   S.gpsLoading = false; if (S.screen === "setup") refreshGps();
 }
@@ -1574,12 +1614,42 @@ const ACT = {
     if (!supabase) return toast("Supabase");
     await supabase.auth.signInWithOAuth({ provider: el.dataset.p, options: { redirectTo: window.location.href } });
   },
+  "pw-signin": () => pwAuth(false),
+  "pw-signup": () => pwAuth(true),
   "logout": async () => { if (supabase) await supabase.auth.signOut(); S.session = null; closeModal(); render(); },
   "install": async () => {
     if (!S.deferredInstall) return toast(t("install_android_p"));
     S.deferredInstall.prompt(); await S.deferredInstall.userChoice; S.deferredInstall = null; render();
   },
 };
+
+// ---- Supabase 이메일/비밀번호 로그인 (테스트용) ----
+async function pwAuth(signup) {
+  const msg = (k, ok) => { const m = $("lgMsg"); if (m) { m.textContent = k ? t(k) : ""; m.className = "lmsg" + (ok ? " ok" : ""); } };
+  if (!supabase) return msg("login_fail");
+  const email = ($("lgEmail") || {}).value ? $("lgEmail").value.trim() : "";
+  const pw = ($("lgPw") || {}).value || "";
+  if (!email || pw.length < 6) return msg("login_need");
+  msg("login_wait", true);
+  try {
+    if (signup) {
+      const { data, error } = await supabase.auth.signUp({ email, password: pw });
+      if (error) {
+        const m = (error.message || "").toLowerCase();
+        return msg(m.includes("already") ? "login_exists" : "login_fail");
+      }
+      if (data && data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) return msg("login_exists");
+      if (data && data.session) { S.session = data.session; toast(t("login_ok")); render(); return; }
+      return msg("login_confirm_sent", true);
+    }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password: pw });
+    if (error) {
+      const m = (error.message || "").toLowerCase();
+      return msg(m.includes("confirm") ? "login_unconfirmed" : m.includes("invalid") ? "login_bad" : "login_fail");
+    }
+    S.session = data.session; toast(t("login_ok")); render();
+  } catch (e) { msg("login_fail"); }
+}
 document.addEventListener("click", (e) => {
   const el = e.target.closest("[data-act]"); if (!el) return;
   const fn = ACT[el.dataset.act]; if (fn) fn(el, e);
