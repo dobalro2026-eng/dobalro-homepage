@@ -1,5 +1,5 @@
 // 두발로 PWA 서비스워커 — 최소 오프라인 캐시 (v4.2: 앱 기능 포팅판)
-const CACHE = "dobalro-v4-2";
+const CACHE = "dobalro-v4-6";
 const CORE_ASSETS = [
   "./index.html",
   "./config.js",
