@@ -1253,7 +1253,7 @@ function viewIntro() {
   const bands = ["#1B4DA8", "#C8302E", "var(--gold)", "#F0E7CD", "#14100C"];
   return `<div class="screen">${topbar()}
   <div class="wrap"><div class="card">
-    <div class="center"><span class="float" style="margin-bottom:12px;display:inline-flex">${nagIco(72)}</span></div>
+    <div class="center"><span class="float" style="margin-bottom:12px;display:inline-flex">${nagIco(96)}</span></div>
     <div class="obang">${bands.map((c, i) => `<span style="background:${c};${i === 4 ? "box-shadow:inset 0 0 0 1px var(--gold)" : i === 3 ? "box-shadow:inset 0 0 0 1px rgba(var(--gold-rgb),.4)" : ""}"></span>`).join("")}</div>
     <div class="en">to go<br>or not to go,<br>that is the question</div>
     <div class="ko-sub serif">${t("intro_line1")}<br>${t("intro_line2")}</div>
