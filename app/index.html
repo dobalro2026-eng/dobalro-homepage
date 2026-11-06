@@ -378,6 +378,23 @@ select.sel{font-size:15px;padding:7px 10px;border-radius:8px;background:rgba(var
 .lbtn.sec{background:rgba(var(--glass),.08);color:var(--tp);border:1px solid rgba(var(--gold-rgb),.3);}
 .lmsg{min-height:16px;font-size:12px;color:#e0705a;margin-bottom:8px;}.lmsg.ok{color:var(--td);}
 .lbtn.out{background:rgba(var(--glass),.08);color:var(--tm);margin-bottom:0;}
+/* ---- 로그인 첫 화면 (iOS 앱 로그인 화면 대응) ---- */
+.lg{min-height:calc(100dvh - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));display:flex;flex-direction:column;max-width:400px;margin:0 auto;}
+.lg-top{display:flex;justify-content:flex-end;}
+.lg-lang{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:rgba(var(--glass),.08);border:1px solid rgba(var(--gold-rgb),.2);font-size:14px;color:var(--tp);}
+.lg-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 0;}
+.lg-hero h1{font-family:var(--serif);font-size:44px;font-weight:900;letter-spacing:2px;margin:16px 0 10px;color:var(--tp);}
+.lg-hero p{font-family:var(--serif);font-size:16px;color:var(--tm);margin:0;}
+.lg-bottom{padding-bottom:8px;}
+.lg-k{text-align:center;font-size:16px;font-weight:600;color:var(--tp);margin:0 0 16px;}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:54px;border-radius:14px;background:#fff;color:#1F1F1F;font-size:16px;font-weight:600;border:1px solid #DADCE0;box-shadow:0 2px 10px rgba(0,0,0,.25);}
+.gbtn:active{transform:scale(.98);}
+.gbtn svg{width:20px;height:20px;flex-shrink:0;}
+.login-card .gbtn{height:48px;font-size:15px;box-shadow:none;}
+.lg-skip{display:block;margin:18px auto 0;font-size:13px;color:var(--td);text-decoration:underline;text-underline-offset:3px;padding:6px;}
+.lg-legal{text-align:center;font-size:11px;line-height:1.6;color:var(--tf);margin:14px 0 0;}
+.lg-legal a{color:var(--td);}
+.lg-wait{text-align:center;font-family:var(--serif);font-size:15px;color:var(--gold);padding:18px 0;}
 .resume{max-width:400px;margin:14px auto 0;padding:14px 18px;border-radius:14px;background:rgba(var(--gold-rgb),.1);border:1px solid var(--gold);}
 .resume p{margin:0 0 10px;font-size:13px;color:var(--tp);line-height:1.6;}
 .screen{animation:fadeIn .35s ease;}
@@ -539,6 +556,12 @@ const EXTRA = {
   login_kakao_web: { ko: "카카오로 시작하기", en: "Continue with Kakao" },
   login_google_web: { ko: "Google로 시작하기", en: "Continue with Google" },
   login_test_t: { ko: "테스트 로그인 — 기록을 기기 간 동기화해요", en: "Test sign-in — sync your records across devices" },
+  login_go_google: { ko: "Google로 떠나기", en: "Set off with Google", ja: "Googleで出発", zh: "用 Google 出发", es: "Partir con Google" },
+  login_skip: { ko: "로그인 없이 둘러보기", en: "Look around without signing in", ja: "ログインせずに見てみる", zh: "先不登录看看", es: "Explorar sin iniciar sesión" },
+  login_legal: { ko: "로그인하면 여행 기록이 기기 간에 동기화돼요", en: "Sign in to sync your trips across devices", ja: "ログインすると旅の記録を端末間で同期します", zh: "登录后可在设备间同步旅行记录", es: "Inicia sesión para sincronizar tus viajes" },
+  login_privacy: { ko: "개인정보처리방침", en: "Privacy Policy", ja: "プライバシーポリシー", zh: "隐私政策", es: "Política de privacidad" },
+  login_signing: { ko: "로그인 중…", en: "Signing in…", ja: "ログイン中…", zh: "正在登录…", es: "Iniciando sesión…" },
+  login_sync_t: { ko: "로그인하면 기록을 기기 간에 동기화해요", en: "Sign in to sync your records across devices", ja: "ログインで記録を端末間で同期", zh: "登录即可跨设备同步记录", es: "Inicia sesión para sincronizar tus registros" },
   login_email: { ko: "이메일", en: "Email" },
   login_pw: { ko: "비밀번호 (6자 이상)", en: "Password (6+ characters)" },
   login_signin: { ko: "로그인", en: "Sign in" },
@@ -620,12 +643,15 @@ document.documentElement.lang = lang;
 // ---------------------------------------------------------------
 const cfg = window.DOBALRO_CONFIG || {};
 let supabase = null;
-async function initSupabase() {
-  if (!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY)) return;
-  try {
-    const mod = await import("https://esm.sh/@supabase/supabase-js@2");
-    supabase = mod.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
-  } catch (e) { supabase = null; }
+let supaP = null;
+function initSupabase() {
+  if (!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY)) return Promise.resolve();
+  return supaP || (supaP = (async () => {
+    try {
+      const mod = await import("https://esm.sh/@supabase/supabase-js@2");
+      supabase = mod.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+    } catch (e) { supabase = null; supaP = null; }
+  })());
 }
 
 // ---------------------------------------------------------------
@@ -1231,22 +1257,45 @@ function installCard() {
   }
   return "";
 }
-const OAUTH_ENABLED = false;
+const OAUTH_ENABLED = true;        // Google 로그인 켬
+const KAKAO_ENABLED = false;       // 카카오: 카카오 앱·Supabase 설정이 끝나면 true
+const EMAIL_LOGIN_ENABLED = false; // 이메일 로그인: Supabase 기본 메일이 팀원에게만·시간당 2통이라 숨김 (외부 메일 연결 후 true)
+const GUEST_KEY = "dobalro_guest_v1";
+const hasAuthCfg = () => !!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY);
+const isGuest = () => { try { return !!localStorage.getItem(GUEST_KEY); } catch (e) { return false; } };
+const authInUrl = () => /[?#&](code|access_token|error_description)=/.test(location.search + location.hash);
+function hasStoredSession() { try { return Object.keys(localStorage).some((k) => /^sb-.+-auth-token$/.test(k)); } catch (e) { return false; } }
+function appBaseUrl() { let p = location.pathname.replace(/index\.html$/, ""); if (!p.endsWith("/")) p += "/"; return location.origin + p; }
+const G_LOGO = `<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
+const googleBtn = () => `<button class="gbtn" data-act="login" data-p="google">${G_LOGO}<span>${t("login_go_google")}</span></button>`;
 function loginCard() {
-  if (!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY)) return "";
+  if (!hasAuthCfg()) return "";
   if (S.session) {
     return `<div class="login-card"><div class="em">${t("logged_in")} · ${esc(S.session.user.email || "")}</div>
       <button class="lbtn out" data-act="logout">${t("logout")}</button></div>`;
   }
-  // 카카오·Google 로그인은 보류(OAUTH_ENABLED=false) — 테스트 기간에는 Supabase 이메일 로그인
-  const oauth = OAUTH_ENABLED ? `<button class="lbtn kakao" data-act="login" data-p="kakao">${t("login_kakao_web")}</button>
-    <button class="lbtn google" data-act="login" data-p="google">${t("login_google_web")}</button>` : "";
-  return `<div class="login-card"><div class="k">${t("login_test_t")}</div>
-    <input class="linp" id="lgEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${t("login_email")}">
+  const oauth = OAUTH_ENABLED ? `${KAKAO_ENABLED ? `<button class="lbtn kakao" data-act="login" data-p="kakao">${t("login_kakao_web")}</button>` : ""}${googleBtn()}` : "";
+  const email = EMAIL_LOGIN_ENABLED ? `<input class="linp" id="lgEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${t("login_email")}">
     <input class="linp" id="lgPw" type="password" autocomplete="current-password" placeholder="${t("login_pw")}">
     <div class="lrow"><button class="lbtn pri" data-act="pw-signin">${t("login_signin")}</button>
     <button class="lbtn sec" data-act="pw-signup">${t("login_signup")}</button></div>
-    <div class="lmsg" id="lgMsg"></div>${oauth}</div>`;
+    <div class="lmsg" id="lgMsg"></div>` : "";
+  if (!oauth && !email) return "";
+  return `<div class="login-card"><div class="k">${t(EMAIL_LOGIN_ENABLED ? "login_test_t" : "login_sync_t")}</div>${email}${oauth}</div>`;
+}
+// 앱처럼 첫 화면에 보이는 로그인 화면 (두발로 · 목적지 운명에 맡겨 · 간편 로그인)
+function viewLogin() {
+  const L = LANGS.find((l) => l.code === lang) || LANGS[0];
+  return `<div class="screen"><div class="lg">
+    <div class="lg-top"><button class="lg-lang" data-act="lang-pick"><span>${L.flag}</span><span>${L.name}</span></button></div>
+    <div class="lg-hero"><span class="float" style="display:inline-flex">${nagIco(88)}</span>
+      <h1>${t("app_name")}</h1><p>${t("login_slogan")}</p></div>
+    <div class="lg-bottom">
+      ${S.authBusy ? `<div class="lg-wait">${t("login_signing")}</div>` : `<div class="lg-k">${t("login_easy")}</div>
+      ${googleBtn()}
+      <button class="lg-skip" data-act="guest">${t("login_skip")}</button>`}
+      <p class="lg-legal">${t("login_legal")} · <a href="../privacy.html">${t("login_privacy")}</a></p>
+    </div></div></div>`;
 }
 function viewIntro() {
   const n = HIST.length, trip = S.resumeDismissed ? null : readTrip();
@@ -1845,7 +1894,7 @@ function openSettings() {
 // ---------------------------------------------------------------
 function render() {
   document.body.classList.toggle("loading", S.screen === "loading");
-  const views = { intro: viewIntro, setup: viewSetup, loading: viewLoading, reveal: viewReveal, navigate: viewNavigate, history: viewHistory };
+  const views = { login: viewLogin, intro: viewIntro, setup: viewSetup, loading: viewLoading, reveal: viewReveal, navigate: viewNavigate, history: viewHistory };
   const same = render._last === S.screen; render._last = S.screen;
   app.innerHTML = (views[S.screen] || viewIntro)();
   if (same) { const sc = app.querySelector(".screen"); if (sc) sc.style.animation = "none"; const cd = app.querySelector(".card"); if (cd) cd.style.animation = "none"; }
@@ -1897,12 +1946,24 @@ const ACT = {
   "set": (el) => { settings[el.dataset.k] = el.dataset.v; saveSettings(); if (el.dataset.k === "theme") applyTheme(); openSettings(); render(); },
   "toggle-prox": () => { settings.prox = !settings.prox; saveSettings(); if (settings.prox) unlockAudio(); openSettings(); },
   "login": async (el) => {
-    if (!supabase) return toast("Supabase");
-    await supabase.auth.signInWithOAuth({ provider: el.dataset.p, options: { redirectTo: window.location.href } });
+    if (!supabase) await initSupabase();
+    if (!supabase) return toast(t("login_fail"));
+    S.authBusy = true; if (S.screen === "login") render();
+    const { error } = await supabase.auth.signInWithOAuth({ provider: el.dataset.p, options: { redirectTo: appBaseUrl() } });
+    if (error) { S.authBusy = false; toast(t("login_fail")); render(); }
   },
+  "guest": () => { try { localStorage.setItem(GUEST_KEY, "1"); } catch (e) {} go("intro"); },
+  "lang-pick": () => sheet({ title: t("settings_language"), buttons: [
+    ...LANGS.map((l) => ({ label: `${l.flag} ${l.name}`, onClick: () => { closeSheet(); lang = l.code; settings.lang = lang; saveSettings(); rerenderAll(); } })),
+    { label: t("common_cancel"), role: "cancel", onClick: closeSheet } ] }),
   "pw-signin": () => pwAuth(false),
   "pw-signup": () => pwAuth(true),
-  "logout": async () => { if (supabase) await supabase.auth.signOut(); S.session = null; closeModal(); render(); },
+  "logout": async () => {
+    if (supabase) await supabase.auth.signOut();
+    S.session = null; closeModal();
+    try { localStorage.removeItem(GUEST_KEY); } catch (e) {}
+    go(hasAuthCfg() ? "login" : "intro");
+  },
   "install": async () => {
     if (!S.deferredInstall) return toast(t("install_android_p"));
     S.deferredInstall.prompt(); await S.deferredInstall.userChoice; S.deferredInstall = null; render();
@@ -1961,16 +2022,31 @@ window.addEventListener("appinstalled", () => { S.deferredInstall = null; toast(
 // 24. 시작
 // ---------------------------------------------------------------
 async function boot() {
+  // 첫 화면: 로그인 기록도 없고 "둘러보기"도 고르지 않았으면 로그인 화면부터 (앱과 같은 흐름)
+  const fromAuth = authInUrl();
+  if (hasAuthCfg() && (fromAuth || (!isGuest() && !hasStoredSession()))) S.screen = "login";
+  if (fromAuth) S.authBusy = true;   // Google에서 돌아오는 중
   render();
   loadPool();                       // 미리 불러두기 (places.json)
   await initSupabase();
   if (supabase) {
     try {
       const { data } = await supabase.auth.getSession(); S.session = data.session;
-      supabase.auth.onAuthStateChange((_ev, session) => { S.session = session; if (S.screen === "intro") render(); });
-      if (S.screen === "intro") render();
-    } catch (e) {}
-  }
+      supabase.auth.onAuthStateChange((_ev, session) => {
+        S.session = session;
+        if (session && S.screen === "login") { S.authBusy = false; go("intro"); }
+        else if (S.screen === "intro") render();
+      });
+      if (fromAuth) {
+        try { history.replaceState(null, "", location.pathname); } catch (e) {}
+        S.authBusy = false;
+        if (!S.session) toast(t("login_fail"));
+      }
+      if (S.session && S.screen === "login") go("intro");
+      else if (!S.session && !isGuest() && S.screen === "intro") go("login");
+      else render();
+    } catch (e) { S.authBusy = false; render(); }
+  } else if (S.screen === "login") { S.authBusy = false; render(); }
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
 boot();
