@@ -1,10 +1,20 @@
 // 두발로 PWA 서비스워커 — 최소 오프라인 캐시 (v4.2: 앱 기능 포팅판)
-const CACHE = "dobalro-v4-13";
+const CACHE = "dobalro-v4-16-sync";
 const CORE_ASSETS = [
   "./index.html",
   "./config.js",
   "./manifest.json",
   "./places.json",
+  "./taxonomy.js",
+  "./assets/categories/nature.png",
+  "./assets/categories/dining.png",
+  "./assets/categories/culture.png",
+  "./assets/categories/heritage.png",
+  "./assets/categories/market.png",
+  "./assets/categories/neighborhood.png",
+  "./assets/categories/industrial.png",
+  "./assets/categories/info.png",
+
 ];
 
 self.addEventListener("install", (event) => {
